@@ -27,6 +27,14 @@ def download():
     data = request.get_json(silent=True) or {}
     url = data.get("url", "").strip()
 
+    print(
+    subprocess.run(
+        ["ffmpeg", "-version"],
+        capture_output=True,
+        text=True
+    )
+)
+
     if not url:
         return jsonify({
             "success": False,
