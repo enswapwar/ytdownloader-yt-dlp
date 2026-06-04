@@ -26,7 +26,6 @@ button.addEventListener("click", () => {
 
     console.log(normalizedUrl);
 
-    /*
     fetch("/download", {
         method: "POST",
         headers: {
@@ -36,7 +35,6 @@ button.addEventListener("click", () => {
             url: normalizedUrl
         })
     });
-    */
 });
 
 input.addEventListener("keydown", e => {
