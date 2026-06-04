@@ -16,12 +16,12 @@ def index():
     return send_file(os.path.join(ROOT_DIR, "index.html"))
 
 @app.route("/programfile/<path:filename>")
-def programfile(filename):
+def programfile_files(filename):
     return send_from_directory(BASE_DIR, filename)
 
 @app.route("/download", methods=["POST"])
 def download():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     url = data.get("url", "").strip()
 
     if not url:
@@ -31,8 +31,7 @@ def download():
         }), 400
 
     uid = str(uuid.uuid4())
-
-    template = os.path.join(
+    output_template = os.path.join(
         DOWNLOAD_DIR,
         f"{uid}.%(ext)s"
     )
@@ -40,27 +39,31 @@ def download():
     try:
         subprocess.run(
             [
-                "yt-dlp",
+                "python",
+                "-m",
+                "yt_dlp",
                 "-o",
-                template,
+                output_template,
                 url
             ],
             check=True
         )
 
         files = [
-            os.path.join(DOWNLOAD_DIR, f)
-            for f in os.listdir(DOWNLOAD_DIR)
+            f for f in os.listdir(DOWNLOAD_DIR)
             if f.startswith(uid)
         ]
 
         if not files:
             return jsonify({
                 "success": False,
-                "error": "ファイルが見つかりません"
+                "error": "ダウンロード失敗"
             }), 500
 
-        filepath = files[0]
+        filepath = os.path.join(
+            DOWNLOAD_DIR,
+            files[0]
+        )
 
         response = send_file(
             filepath,
@@ -76,10 +79,10 @@ def download():
 
         return response
 
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
         return jsonify({
             "success": False,
-            "error": "yt-dlp実行失敗"
+            "error": str(e)
         }), 500
 
 if __name__ == "__main__":
