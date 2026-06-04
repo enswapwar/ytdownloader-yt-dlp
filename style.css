@@ -1,0 +1,45 @@
+body{
+    margin:0;
+    width:100vw;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#111;
+    color:#fff;
+    font-family:sans-serif;
+}
+
+.container{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:15px;
+}
+
+.input-area{
+    display:flex;
+    gap:10px;
+}
+
+#urlInput{
+    width:400px;
+    padding:12px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    outline:none;
+}
+
+#goButton{
+    padding:12px 24px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.description{
+    font-size:14px;
+    opacity:0.8;
+}
