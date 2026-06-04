@@ -37,49 +37,7 @@ def download():
     )
 
     try:
-        subprocess.run(
-            [
-                "python",
-                "-m",
-                "yt_dlp",
-                "-o",
-                output_template,
-                url
-            ],
-            check=True
-        )
-
-        files = [
-            f for f in os.listdir(DOWNLOAD_DIR)
-            if f.startswith(uid)
-        ]
-
-        if not files:
-            return jsonify({
-                "success": False,
-                "error": "ダウンロード失敗"
-            }), 500
-
-        filepath = os.path.join(
-            DOWNLOAD_DIR,
-            files[0]
-        )
-
-        response = send_file(
-            filepath,
-            as_attachment=True
-        )
-
-        @response.call_on_close
-        def cleanup():
-            try:
-                os.remove(filepath)
-            except:
-                pass
-
-        return response
-
-   result = subprocess.run(
+result = subprocess.run(
     [
         "python",
         "-m",
@@ -104,6 +62,31 @@ if result.returncode != 0:
         "stdout": result.stdout,
         "stderr": result.stderr
     }), 500
+
+        filepath = os.path.join(
+            DOWNLOAD_DIR,
+            files[0]
+        )
+
+        response = send_file(
+            filepath,
+            as_attachment=True
+        )
+
+        @response.call_on_close
+        def cleanup():
+            try:
+                os.remove(filepath)
+            except:
+                pass
+
+        return response
+
+    except subprocess.CalledProcessError as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
 
 if __name__ == "__main__":
     app.run(
