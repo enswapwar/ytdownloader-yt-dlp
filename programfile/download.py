@@ -79,11 +79,31 @@ def download():
 
         return response
 
-    except subprocess.CalledProcessError as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+   result = subprocess.run(
+    [
+        "python",
+        "-m",
+        "yt_dlp",
+        "-o",
+        output_template,
+        url
+    ],
+    capture_output=True,
+    text=True
+)
+
+print("STDOUT:")
+print(result.stdout)
+
+print("STDERR:")
+print(result.stderr)
+
+if result.returncode != 0:
+    return jsonify({
+        "success": False,
+        "stdout": result.stdout,
+        "stderr": result.stderr
+    }), 500
 
 if __name__ == "__main__":
     app.run(
