@@ -11,13 +11,16 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
+
 @app.route("/")
 def index():
     return send_file(os.path.join(ROOT_DIR, "index.html"))
 
+
 @app.route("/programfile/<path:filename>")
 def programfile_files(filename):
     return send_from_directory(BASE_DIR, filename)
+
 
 @app.route("/download", methods=["POST"])
 def download():
@@ -31,37 +34,53 @@ def download():
         }), 400
 
     uid = str(uuid.uuid4())
+
     output_template = os.path.join(
         DOWNLOAD_DIR,
         f"{uid}.%(ext)s"
     )
 
     try:
-result = subprocess.run(
-    [
-        "python",
-        "-m",
-        "yt_dlp",
-        "-o",
-        output_template,
-        url
-    ],
-    capture_output=True,
-    text=True
-)
+        result = subprocess.run(
+            [
+                "python",
+                "-m",
+                "yt_dlp",
+                "-o",
+                output_template,
+                url
+            ],
+            capture_output=True,
+            text=True
+        )
 
-print("STDOUT:")
-print(result.stdout)
+        print("===== STDOUT =====")
+        print(result.stdout)
 
-print("STDERR:")
-print(result.stderr)
+        print("===== STDERR =====")
+        print(result.stderr)
 
-if result.returncode != 0:
-    return jsonify({
-        "success": False,
-        "stdout": result.stdout,
-        "stderr": result.stderr
-    }), 500
+        print("===== RETURN CODE =====")
+        print(result.returncode)
+
+        if result.returncode != 0:
+            return jsonify({
+                "success": False,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "returncode": result.returncode
+            }), 500
+
+        files = [
+            f for f in os.listdir(DOWNLOAD_DIR)
+            if f.startswith(uid)
+        ]
+
+        if not files:
+            return jsonify({
+                "success": False,
+                "error": "ファイルが見つかりません"
+            }), 500
 
         filepath = os.path.join(
             DOWNLOAD_DIR,
@@ -77,16 +96,17 @@ if result.returncode != 0:
         def cleanup():
             try:
                 os.remove(filepath)
-            except:
-                pass
+            except Exception as e:
+                print(e)
 
         return response
 
-    except subprocess.CalledProcessError as e:
+    except Exception as e:
         return jsonify({
             "success": False,
             "error": str(e)
         }), 500
+
 
 if __name__ == "__main__":
     app.run(
